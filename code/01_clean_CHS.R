@@ -46,6 +46,7 @@ chs_analysis = raw_chs %>%
               select(idno, t10_cen_uid_u_2010) %>%
               rename(geo_tract11=t10_cen_uid_u_2010),
             by="idno") %>%
+  mutate(geo_county5=str_sub(geo_tract11, 1, 5)) %>%
   left_join(raw_chs_zcta %>%
               select(idno, z10_cen_uid_u_2010) %>%
               rename(geo_zcta5=z10_cen_uid_u_2010),
