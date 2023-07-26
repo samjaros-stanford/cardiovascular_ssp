@@ -20,7 +20,9 @@ raw_chs_zcta = read_sas("raw_data/chs_zcta_baseline_2010.sas7bdat")
 ##############
 # Processing #
 ##############
-# Get tracts & ZCTAs needed for ICE calcs
+# Retrieve CHS data needed for analysis
+# This section only harmonizes the data in preparation for merging with
+#   geography, ICEs, and REGARDS
 chs_analysis = raw_chs %>%
   # Rename & select variables needed for analysis
   # No education variable in our CHS dataset right now
