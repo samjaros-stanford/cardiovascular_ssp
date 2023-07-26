@@ -24,10 +24,23 @@ raw_chs_zcta = read_sas("raw_data/chs_zcta_baseline_2010.sas7bdat")
 # This section only harmonizes the data in preparation for merging with
 #   geography, ICEs, and REGARDS
 chs_analysis = raw_chs %>%
+  # Merge in geographic data
+  left_join(raw_chs_tract %>%
+              select(idno, t10_cen_uid_u_2010) %>%
+              rename(geo_tract11=t10_cen_uid_u_2010),
+            by="idno") %>%
+  mutate(geo_county5=str_sub(geo_tract11, 1, 5)) %>%
+  left_join(raw_chs_zcta %>%
+              select(idno, z10_cen_uid_u_2010) %>%
+              rename(geo_zcta5=z10_cen_uid_u_2010),
+            by="idno") %>%
   # Rename & select variables needed for analysis
   # No education variable in our CHS dataset right now
-  mutate(education = NA) %>%
-  rename(sys_bp=avesys2, 
+  mutate(idno = paste0("C", idno),
+         study = "CHS",
+         education = NA) %>%
+  rename(id=idno,
+         sys_bp=avesys2, 
          dia_bp=avedia2, 
          age=agebl, 
          gender=gend01, 
@@ -41,18 +54,8 @@ chs_analysis = raw_chs %>%
          diabetes=diabada2, 
          cyst_c=cystatc2, 
          crp=crp2) %>%
-  select(idno, sys_bp, dia_bp, age, gender, race, educ, alcohol, smoke, bmi, 
-         hdl, ldl, diabetes, cyst_c, crp) %>%
-  # Merge in geographic data
-  left_join(raw_chs_tract %>%
-              select(idno, t10_cen_uid_u_2010) %>%
-              rename(geo_tract11=t10_cen_uid_u_2010),
-            by="idno") %>%
-  mutate(geo_county5=str_sub(geo_tract11, 1, 5)) %>%
-  left_join(raw_chs_zcta %>%
-              select(idno, z10_cen_uid_u_2010) %>%
-              rename(geo_zcta5=z10_cen_uid_u_2010),
-            by="idno")
+  select(id, study, sys_bp, dia_bp, age, gender, race, educ, alcohol, smoke, bmi, 
+         hdl, ldl, diabetes, cyst_c, crp, starts_with("geo_"))
 
 # Get missingness
 chs_analysis %>%
