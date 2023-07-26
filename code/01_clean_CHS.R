@@ -35,17 +35,15 @@ chs_analysis = raw_chs %>%
               rename(geo_zcta5=z10_cen_uid_u_2010),
             by="idno") %>%
   # Rename & select variables needed for analysis
-  # No education variable in our CHS dataset right now
   mutate(idno = paste0("C", idno),
-         study = "CHS",
-         education = NA) %>%
+         study = "CHS") %>%
   rename(id=idno,
          sys_bp=avesys2, 
          dia_bp=avedia2, 
          age=agebl, 
          gender=gend01, 
          race=race01, 
-         educ=education, 
+         educ=grade01, 
          alcohol=alcoh2, 
          smoke=smoke2, 
          bmi=bmi2, 
@@ -68,3 +66,4 @@ chs_analysis %>%
 # Export #
 ##########
 saveRDS(chs_analysis, "data/chs_analysis.rds")
+
