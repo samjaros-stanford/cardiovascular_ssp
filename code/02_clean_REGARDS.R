@@ -38,7 +38,7 @@ regards_analysis = raw_regards %>%
          #   Race = Black/White
          race = case_when(
            Race == "B" ~ "Black",
-           Race == "W" ~ "White",
+           Race == "W" ~ "White/Other",
            T           ~ NA_character_),
          #   Smoker = Never/Former/Current
          smoke = case_when(
