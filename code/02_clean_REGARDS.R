@@ -54,13 +54,12 @@ regards_analysis = raw_regards %>%
   rename(sys_bp=SBP, 
          dia_bp=DBP, 
          age=Age, 
-         alcohol=Alc_Drinks_Wk, 
          bmi=BMI, 
          hdl=Hdl, 
          ldl=Ldl, 
          egfr_ckdepi=EGFR_CKDEPI,
          crp=Crp) %>%
-  select(id, study, sys_bp, dia_bp, age, gender, race, educ, alcohol, smoke, bmi, 
+  select(id, study, sys_bp, dia_bp, age, gender, race, educ, smoke, bmi, 
          hdl, ldl, diabetes, egfr_ckdepi, crp, starts_with("geo_", ignore.case=F))
 
 # Get missingness

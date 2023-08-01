@@ -71,17 +71,14 @@ chs_analysis = raw_chs %>%
            smoke == 2 ~ "Former",
            smoke == 3 ~ "Current",
            T          ~ NA_character_),
-         #   Diabetes = No - normal & ifg, Yes - known diabetes & new diabetes
-         diabetes = if_else(perstat=="old cohort", diabada2, diabada5),
+         #   Diabetes = Yes - 1/No - 0
          diabetes = case_when(
-           grepl("diabetes", diabetes) ~ "Diabetes",
-           diabetes == "normal"        ~ "Normal",
-           diabetes == "ifg"           ~ "Normal",
-           T                           ~ NA_character_),
+           diabet==1 ~ "Diabetes",
+           diabet==0 ~ "Normal",
+           T         ~ NA_character_),
          # Select proper timepoint based on wave
          sys_bp   =if_else(perstat=="old cohort",avesys2,  avesys5), 
          dia_bp   =if_else(perstat=="old cohort",avedia2,  avedia5), 
-         alcohol  =if_else(perstat=="old cohort",alcoh2,   alcoh5),
          bmi      =if_else(perstat=="old cohort",bmi2,     bmi5),
          hdl      =if_else(perstat=="old cohort",hdl2,     hdl5),
          ldl      =if_else(perstat=="old cohort",ldladj2,  ldladj5),
@@ -96,7 +93,7 @@ chs_analysis = raw_chs %>%
   mutate(egfr_ckdepi = 141*min(scr/kappa,1)^alpha*max(scr/kappa,1)^-1.209*0.993^age*final) %>%
   ungroup() %>%
   # Keep only variables of interest
-  select(id, study, sys_bp, dia_bp, age, gender, race, educ, alcohol, smoke, bmi, 
+  select(id, study, sys_bp, dia_bp, age, gender, race, educ, smoke, bmi, 
          hdl, ldl, diabetes, egfr_ckdepi, crp, starts_with("geo_"))
 
 # Get missingness

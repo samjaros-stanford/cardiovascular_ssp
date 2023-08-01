@@ -1,7 +1,5 @@
 library(tidyverse)
 
-# Depends on output from 01_clean_CHS.R & 02_clean_REGARDS.R
-
 ##############
 # Processing #
 ##############
@@ -27,7 +25,10 @@ full_analysis = rbind(
          diabetes = factor(diabetes, levels=c("Normal", "Diabetes"))) %>%
   # Construct primary outcomes - Hypertension 1 & 2
   mutate(hbp1 = factor(if_else(sys_bp>=140 | dia_bp >=90, "HBP1", "Normal", missing=NA), levels=c("Normal","HBP1")),
-         hbp2 = factor(if_else(sys_bp>=130 | dia_bp >=80, "HBP2", "Normal", missing=NA), levels=c("Normal","HBP2")))
+         hbp2 = factor(if_else(sys_bp>=130 | dia_bp >=80, "HBP2", "Normal", missing=NA), levels=c("Normal","HBP2"))) %>%
+  # Get ICE tertile & quantile values
+  mutate(across(starts_with("ICE"), ~factor(ntile(.x, 3),levels=c(1:3)), .names="{.col}_tert")) %>%
+  mutate(across(starts_with("ICE"), ~factor(ntile(.x, 5),levels=c(1:5)), .names="{.col}_quant"))
 
 # Get missingness
 print(full_analysis %>%
@@ -38,4 +39,7 @@ print(full_analysis %>%
                      values_to = "pct_missing"),
       n=ncol(full_analysis))
 
-
+##########
+# Export #
+##########
+saveRDS(full_analysis, "data/full_analysis.rds")
