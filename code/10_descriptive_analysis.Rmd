@@ -1,0 +1,44 @@
+---
+title: "Cardiovascular SSP - Descriptive Analyses"
+author: "Sam Jaros"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup}
+library(table1)
+library(tidyverse)
+
+# Cleaned & merged data import
+full_analysis = readRDS(here::here("data/full_analysis.rds"))
+```
+
+# Table 1 - Summary of Analysis Variables
+
+```{r table_one}
+# Biological & Demographic Variables
+table1(~ hbp1 + hbp2 + sys_bp + dia_bp + age + gender + race + educ +
+         smoke + bmi + hdl + ldl + diabetes + egfr_ckdepi + crp +
+         is.na(geo_tract11) + is.na(geo_zcta5) + is.na(geo_county5) | study,
+       data = full_analysis)
+# ICE Variables
+table1(~ ICEincome_tract + ICEraceeth_tract + ICEhome_tract + ICEincwb_tract + 
+         ICEincwnh_tract + ICElanguage_tract + ICEedu_tract +
+         ICEincome_zcta + ICEraceeth_zcta + ICEhome_zcta + ICEincwb_zcta + 
+         ICEincwnh_zcta + ICElanguage_zcta + ICEedu_zcta + 
+         ICEincome_county + ICEraceeth_county + ICEhome_county + ICEincwb_county +
+         ICEincwnh_county + ICElanguage_county + ICEedu_county | study,
+       data = full_analysis)
+```
+
+
+
+```{r missingness}
+
+```
+
+
+
+```{r ICE_hist}
+
+```
