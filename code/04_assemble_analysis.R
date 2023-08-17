@@ -18,17 +18,23 @@ full_analysis = rbind(
   # Factor variables as needed
   mutate(id = factor(id),
          study = factor(study, levels=c("CHS", "REGARDS")),
+         ### Demographics
          gender = factor(gender, levels=c("Male", "Female")),
          race = factor(race, levels=c("White/Other", "Black")),
          educ = factor(educ, levels=c("College and above", "Some college", "High school", "Less than HS")),
-         smoke = factor(smoke, levels=c("Never", "Former", "Current")),
-         diabetes = factor(diabetes, levels=c("Normal", "Diabetes"))) %>%
+         ### Medical history
+         diabetes = factor(diabetes, levels=c("Normal", "Diabetes")),
+         stroke = factor(stroke, levels=c("No Stroke", "Stroke")),
+         mi = factor(mi, levels=c("No MI", "MI")),
+         ### Comorbidities
+         smoke = factor(smoke, levels=c("Never", "Former", "Current"))) %>%
   # Construct primary outcomes - Hypertension 1 & 2
-  mutate(hbp1 = factor(if_else(sys_bp>=140 | dia_bp >=90, "HBP1", "Normal", missing=NA), levels=c("Normal","HBP1")),
-         hbp2 = factor(if_else(sys_bp>=130 | dia_bp >=80, "HBP2", "Normal", missing=NA), levels=c("Normal","HBP2"))) %>%
+  mutate(hbp1 = sys_bp>=140 | dia_bp >=90,
+         hbp2 = sys_bp>=130 | dia_bp >=80) %>%
   # Get ICE tertile & quantile values
-  mutate(across(starts_with("ICE"), ~factor(ntile(.x, 3),levels=c(1:3)), .names="{.col}_tert")) %>%
-  mutate(across(starts_with("ICE"), ~factor(ntile(.x, 5),levels=c(1:5)), .names="{.col}_quant"))
+  mutate(across(starts_with("ICE"), 
+                .fns=list(tert=~factor(ntile(.x, 3),levels=c(3:1)), quant=~factor(ntile(.x, 5),levels=c(5:1))),
+                .names="{.col}_{.fn}"))
 
 # Get missingness
 print(full_analysis %>%

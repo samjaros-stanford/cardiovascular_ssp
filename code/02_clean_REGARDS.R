@@ -22,45 +22,55 @@ regards_analysis = raw_regards %>%
   # Rename & select variables needed for analysis
   mutate(id=paste0("R", id),
          study="REGARDS",
-         # Harmonize demographics to match CHS
-         #   Gender = Male/Female
+         ### Demographics
+         # Gender = Male/Female
          gender = case_when(
            Gender=="F" ~ "Female",
            Gender=="M" ~ "Male",
            T           ~ NA_character_),
-         #   Education = Less than HS, High School, Some College, College and above
+         # Education = Less than HS, High School, Some College, College and above
          educ = case_when(
-           ED_Cat == "Less than high school"      ~ "Less than HS",
-           ED_Cat == "High school graduate"       ~ "High school",
-           ED_Cat == "Some college"               ~ "Some college",
-           ED_Cat == "College graduate and above" ~ "College and above",
-           T                                      ~ NA_character_),
-         #   Race = Black/White
+           ED_Cat=="Less than high school"      ~ "Less than HS",
+           ED_Cat=="High school graduate"       ~ "High school",
+           ED_Cat=="Some college"               ~ "Some college",
+           ED_Cat=="College graduate and above" ~ "College and above",
+           T                                    ~ NA_character_),
+         # Race = Black/White
          race = case_when(
-           Race == "B" ~ "Black",
-           Race == "W" ~ "White/Other",
-           T           ~ NA_character_),
-         #   Smoker = Never/Former/Current
+           Race=="B" ~ "Black",
+           Race=="W" ~ "White/Other",
+           T         ~ NA_character_),
+         ### Medical History
+         #   Diabetes = Diabetes/Normal
+         diabetes = case_when(
+           Diabetes_SR=="Y" ~ "Diabetes",
+           Diabetes_SR=="N" ~ "Normal",
+           T                ~ NA_character_),
+         stroke = case_when(
+           Stroke_SR=="Y" ~ "Stroke",
+           Stroke_SR=="N" ~ "No Stroke",
+           T              ~ NA_character_),
+         mi = case_when(
+           MI_SR=="Y" ~ "MI",
+           MI_SR=="N" ~ "No MI",
+           T          ~ NA_character_),
+         ### Comorbidities
+         # Smoker = Never/Former/Current
          smoke = case_when(
            Smoke == "Never"   ~ "Never",
            Smoke == "Past"    ~ "Former",
            Smoke == "Current" ~ "Current",
-           T                  ~ NA_character_),
-         #   Diabetes = Diabetes/Normal
-         diabetes = case_when(
-           Diabetes_SR == "Y" ~ "Diabetes",
-           Diabetes_SR == "N" ~ "Normal",
            T                  ~ NA_character_)) %>%
-  rename(sys_bp=SBP, 
-         dia_bp=DBP, 
-         age=Age, 
+  rename(age=Age, 
          bmi=BMI, 
          hdl=Hdl, 
          ldl=Ldl, 
          egfr_ckdepi=EGFR_CKDEPI,
-         crp=Crp) %>%
-  select(id, study, sys_bp, dia_bp, age, gender, race, educ, smoke, bmi, 
-         hdl, ldl, diabetes, egfr_ckdepi, crp, starts_with("geo_", ignore.case=F))
+         crp=Crp,
+         dia_bp=DBP,
+         sys_bp=SBP) %>%
+  select(id, study, sys_bp, dia_bp, age, gender, race, educ, diabetes, stroke, mi,
+         smoke, bmi, hdl, ldl, egfr_ckdepi, crp, starts_with("geo_", ignore.case=F))
 
 # Get missingness
 print(regards_analysis %>%
