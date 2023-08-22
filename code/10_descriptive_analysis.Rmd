@@ -16,19 +16,31 @@ full_analysis = readRDS(here::here("data/full_analysis.rds"))
 # Table 1 - Summary of Analysis Variables
 
 ```{r table_one}
+my_rend = function(x, name, ...) {
+  if(is.numeric(x)){
+    r = with(stats.default(x), 
+             c("", 
+               "Mean (SD)"=sprintf("%0.2f (%0.2f)", MEAN, SD)))
+  } else {
+    r= c("", 
+         sapply(stats.default(x), 
+                function(y) with(y, sprintf("%d (%0.2f%%)", FREQ, PCT))))
+  }
+  if(any(is.na(x))){
+    r = c(r, with(stats.default(is.na(x))$Yes,
+                  c(Missing=sprintf("%s (%0.2f%%)", FREQ, PCT))))
+  }
+  return(r)
+}
+
 # Biological & Demographic Variables
-table1(~ hbp1 + hbp2 + sys_bp + dia_bp + age + gender + race + educ +
-         smoke + bmi + hdl + ldl + diabetes + egfr_ckdepi + crp +
+table1(~ hbp1 + sys_bp + dia_bp + 
+         age + gender + race + educ +
+         diabetes + stroke + mi +
+         smoke + bmi + hdl + ldl + egfr_ckdepi + crp +
          is.na(geo_tract11) + is.na(geo_zcta5) + is.na(geo_county5) | study,
-       data = full_analysis)
-# ICE Variables
-table1(~ ICEincome_tract + ICEraceeth_tract + ICEhome_tract + ICEincwb_tract + 
-         ICEincwnh_tract + ICElanguage_tract + ICEedu_tract +
-         ICEincome_zcta + ICEraceeth_zcta + ICEhome_zcta + ICEincwb_zcta + 
-         ICEincwnh_zcta + ICElanguage_zcta + ICEedu_zcta + 
-         ICEincome_county + ICEraceeth_county + ICEhome_county + ICEincwb_county +
-         ICEincwnh_county + ICElanguage_county + ICEedu_county | study,
-       data = full_analysis)
+       data = full_analysis,
+       render = my_rend)
 ```
 
 
