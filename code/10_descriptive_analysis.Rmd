@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r setup}
+library(ggpubr)
 library(table1)
 library(tidyverse)
 
@@ -52,5 +53,58 @@ table1(~ hbp1 + sys_bp + dia_bp +
 
 
 ```{r ICE_hist}
+ICE_labels = c("ICEincome"   = "Income",
+               "ICEraceeth"  = "Race/Ethnicity",
+               "ICEincwb"    = "Income &\nRace",
+               "ICEincwnh"   = "Income &\nRace/Ethnicity",
+               "ICEhome"     = "Home\nOwnership",
+               "ICEedu"      = "Education",
+               "ICElanguage" = "Language")
+geo_labels = c("county" = "County",
+               "zcta"   = "ZCTA",
+               "tract"  = "Tract")
+geo_fill = c("county" = "#E45904",
+              "zcta"   = "#648FFF",
+              "tract"  = "#86E08E")
+geo_color = c("county" = "black",
+             "zcta"   = "black",
+             "tract"  = "black")
+# geo_color = c("county" = "#E6A176",
+#              "zcta"   = "#B7C9F9",
+#              "tract"  = "#BEE2C2")
+
+ICE_hist_data = full_analysis %>%
+  select(id, study, starts_with("ICE"), -ends_with(c("tert", "quant"))) %>%
+  pivot_longer(cols = c(-id, -study),
+               names_to = c("ICE","geo"),
+               names_sep = "_",
+               values_to = "value",
+               values_drop_na = T) %>%
+  mutate(ICE = factor(ICE, levels=names(ICE_labels)),
+         geo = factor(geo, levels=names(geo_labels)))
+
+
+make_ICE_dist_plot = function(plot_data, show_legend=T){
+  legend_pos = ifelse(show_legend,"right","none")
+  ggplot(plot_data, aes(x=factor(ICE), y=value, color=geo, fill=geo)) +
+    stat_boxplot(geom="errorbar", linewidth=0.4) +
+    geom_boxplot(outlier.shape=NA, linewidth=0.4) +
+    scale_color_manual(values=geo_color, labels=geo_labels) +
+    scale_fill_manual(values=geo_fill, labels=geo_labels) +
+    scale_x_discrete("ICE Domain", breaks=names(ICE_labels), labels=ICE_labels, ) +
+    scale_y_continuous("ICE Value", limits=c(-1,1), breaks=seq(-1,1,0.5)) +
+    theme_minimal() +
+    theme(axis.text.x=element_text(angle=-60, vjust=.5, hjust=0),
+          legend.position=legend_pos,
+          legend.title=element_blank())
+}
+CHS_ICE_dist = make_ICE_dist_plot(ICE_hist_data %>% filter(study=="CHS"))
+REGARDS_ICE_dist = make_ICE_dist_plot(ICE_hist_data %>% filter(study=="REGARDS"))
+
+figure_2 = ggarrange(CHS_ICE_dist, REGARDS_ICE_dist, nrow=1,
+                     labels=c("CHS","REGARDS"), label.x=c(0.1,0.01), vjust=.8,
+                     common.legend=T, legend="top")
+ggsave(here::here("figures/figure2.png"), plot=figure_2,
+       width=6.5, height=4, units="in", dpi=600)
 
 ```
