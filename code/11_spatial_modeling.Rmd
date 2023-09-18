@@ -22,8 +22,8 @@ full_analysis = readRDS(here::here("data/full_analysis.rds")) %>%
          crp_s = scale(crp))
 
 # Parameters for modeling
-outcomes = c("hbp1", "sys_bp", "dia_bp")
-ICEs = c("ICEincome", "ICEraceeth", "ICEhome", "ICEincwb", "ICEincwnh", "ICElanguage", "ICEedu")
+outcomes = c("hbp1", "sys_bp")
+ICEs = c("ICEincome", "ICEraceeth", "ICEhome", "ICEincwb", "ICEincwnh", "ICEedu")
 ICE_mods = c("", "_quant")
 geo_levels = c("county", "zcta", "tract")
 model_params = expand.grid("outcome"=outcomes, "ICE"=ICEs, "ICE_mod"=ICE_mods, "geo"=geo_levels,
