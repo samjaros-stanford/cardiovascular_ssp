@@ -9,6 +9,9 @@ output: html_document
 library(ggpubr)
 library(table1)
 library(tidyverse)
+library(showtext)
+font_add_google("Source Sans Pro")
+showtext_auto()
 
 # Cleaned & merged data import
 full_analysis = readRDS(here::here("data/full_analysis.rds"))
@@ -21,15 +24,16 @@ my_rend = function(x, name, ...) {
   if(is.numeric(x)){
     r = with(stats.default(x), 
              c("", 
-               "Mean (SD)"=sprintf("%0.2f (%0.2f)", MEAN, SD)))
+               "Mean (SD)"=sprintf("%0.1f (%0.1f)", MEAN, SD),
+               "Median (IQR)"=sprintf("%0.1f (%0.1f-%0.1f)", MEDIAN, Q1, Q3)))
   } else {
     r= c("", 
          sapply(stats.default(x), 
-                function(y) with(y, sprintf("%d (%0.2f%%)", FREQ, PCT))))
+                function(y) with(y, sprintf("%d (%0.1f%%)", FREQ, PCT))))
   }
   if(any(is.na(x))){
     r = c(r, with(stats.default(is.na(x))$Yes,
-                  c(Missing=sprintf("%s (%0.2f%%)", FREQ, PCT))))
+                  c(Missing=sprintf("%s (%0.1f%%)", FREQ, PCT))))
   }
   return(r)
 }
@@ -45,66 +49,73 @@ table1(~ hbp1 + sys_bp + dia_bp +
 ```
 
 
-
-```{r missingness}
-
-```
-
-
-
 ```{r ICE_hist}
-ICE_labels = c("ICEincome"   = "Income",
-               "ICEraceeth"  = "Race/Ethnicity",
-               "ICEincwb"    = "Income &\nRace",
-               "ICEincwnh"   = "Income &\nRace/Ethnicity",
-               "ICEhome"     = "Home\nOwnership",
-               "ICEedu"      = "Education",
-               "ICElanguage" = "Language")
-geo_labels = c("county" = "County",
-               "zcta"   = "ZCTA",
-               "tract"  = "Tract")
-geo_fill = c("county" = "#E45904",
-              "zcta"   = "#648FFF",
-              "tract"  = "#86E08E")
-geo_color = c("county" = "black",
-             "zcta"   = "black",
-             "tract"  = "black")
-# geo_color = c("county" = "#E6A176",
-#              "zcta"   = "#B7C9F9",
-#              "tract"  = "#BEE2C2")
+ICE_labels = c("ICEincome"   = expression(ICE[inc]),
+               "ICEraceeth"  = expression(ICE[race]),
+               "ICEincwb"    = expression(ICE[inc+wb]),
+               "ICEincwnh"   = expression(ICE[inc+wnh]),
+               "ICEhome"     = expression(ICE[home]),
+               "ICEedu"      = expression(ICE[edu]))
+strata_labels = c("county"  = "County",
+                  "zcta"    = "ZCTA",
+                  "tract"   = "Tract",
+                  "CHS"     = "CHS",
+                  "REGARDS" = "REGARDS")
+#strata_fill = c("#E45904", "#648FFF", "#86E08E")
+strata_fill = c("#332288", "#117733", "#44AA99")
+strata_color = c("black", "black", "black")
+font = "Source Sans Pro"
 
 ICE_hist_data = full_analysis %>%
-  select(id, study, starts_with("ICE"), -ends_with(c("tert", "quant"))) %>%
+  select(id, study, starts_with("ICE"), -ends_with(c("tert", "quant")), -contains("language")) %>%
   pivot_longer(cols = c(-id, -study),
                names_to = c("ICE","geo"),
                names_sep = "_",
                values_to = "value",
                values_drop_na = T) %>%
   mutate(ICE = factor(ICE, levels=names(ICE_labels)),
-         geo = factor(geo, levels=names(geo_labels)))
+         geo = factor(geo, levels=names(strata_labels)))
 
-
-make_ICE_dist_plot = function(plot_data, show_legend=T){
-  legend_pos = ifelse(show_legend,"right","none")
-  ggplot(plot_data, aes(x=factor(ICE), y=value, color=geo, fill=geo)) +
+make_ICE_dist_plot = function(plot_data, strata_var, legend_pos="top"){
+  ggplot(plot_data, aes(x=factor(ICE), y=value, color=.data[[strata_var]], fill=.data[[strata_var]])) +
     stat_boxplot(geom="errorbar", linewidth=0.4) +
     geom_boxplot(outlier.shape=NA, linewidth=0.4) +
-    scale_color_manual(values=geo_color, labels=geo_labels) +
-    scale_fill_manual(values=geo_fill, labels=geo_labels) +
-    scale_x_discrete("ICE Domain", breaks=names(ICE_labels), labels=ICE_labels, ) +
+    scale_color_manual(values=strata_color, labels=strata_labels) +
+    scale_fill_manual(values=strata_fill, labels=strata_labels) +
+    scale_x_discrete("ICE Domain", breaks=names(ICE_labels), labels=ICE_labels) +
     scale_y_continuous("ICE Value", limits=c(-1,1), breaks=seq(-1,1,0.5)) +
     theme_minimal() +
-    theme(axis.text.x=element_text(angle=-60, vjust=.5, hjust=0),
+    theme(text=element_text(family=font),
+          axis.text.x=element_text(angle=-10, vjust=0.5, hjust=0.25),
+          legend.box.spacing=margin(0,0,-5,0), 
           legend.position=legend_pos,
           legend.title=element_blank())
 }
-CHS_ICE_dist = make_ICE_dist_plot(ICE_hist_data %>% filter(study=="CHS"))
-REGARDS_ICE_dist = make_ICE_dist_plot(ICE_hist_data %>% filter(study=="REGARDS"))
-
-figure_2 = ggarrange(CHS_ICE_dist, REGARDS_ICE_dist, nrow=1,
-                     labels=c("CHS","REGARDS"), label.x=c(0.1,0.01), vjust=.8,
+# Enable showtext to allow for more fonts
+showtext_auto()
+showtext_opts(dpi=600)
+CHS = make_ICE_dist_plot(ICE_hist_data %>% filter(study=="CHS"), "geo")
+REGARDS = make_ICE_dist_plot(ICE_hist_data %>% filter(study=="REGARDS"), "geo")
+# Figure 2
+#   Side-by-side boxplots, CHS vs REGARDS
+#   Each boxplot is stratified by geography level
+#   X: ICE domain, Y: ICE value
+figure_2 = ggarrange(CHS,
+                     REGARDS,
+                     nrow=1,
+                     labels=c("CHS","REGARDS"), label.x=c(0.1,0.01), vjust=.8, font.label=list(family="Source Sans Pro"),
                      common.legend=T, legend="top")
 ggsave(here::here("figures/figure2.png"), plot=figure_2,
-       width=6.5, height=4, units="in", dpi=600)
+       width=6.5, height=4, units="in", dpi=600) 
 
+# Other ICE distribution figures
+#   X: ICE domain, Y: ICE value
+#   Stratified by study, CHS vs REGARDS
+#   Separate plot for each geography level
+# for(level in c("county", "zcta", "tract")){
+#   ggsave(here::here(paste0("figures/ICE_box_",level,".png")), 
+#          plot=make_ICE_dist_plot(filter(ICE_hist_data, geo==level), "study"),
+#          width=3, height=4, units="in", dpi=600)
+# }
+showtext_auto(F)
 ```
