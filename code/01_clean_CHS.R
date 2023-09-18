@@ -72,14 +72,14 @@ chs_analysis = raw_chs %>%
            T         ~ NA_character_),
          # Stroke = no/yes
          stroke = case_when(
-           incstrk=="yes" ~ "Stroke",
-           incstrk=="no"  ~ "No Stroke",
-           T              ~ NA_character_),
+           stblmod=="prevalent" ~ "Stroke",
+           stblmod=="incident"  ~ "No Stroke",
+           T                    ~ NA_character_),
          # MI = no/yes
          mi = case_when(
-           incmi=="yes" ~ "MI",
-           incmi=="no"  ~ "No MI",
-           T            ~ NA_character_),
+           miblmod=="prevalent" ~ "MI",
+           miblmod=="incident"  ~ "No MI",
+           T                    ~ NA_character_),
          ### Comorbidities
          # Smoke = 1-Never, 2-Former, 3-Current
          smoke = if_else(perstat=="old cohort", smoke2, smoke5),
