@@ -67,7 +67,8 @@ strata_color = c("black", "black", "black")
 font = "Source Sans Pro"
 
 ICE_hist_data = full_analysis %>%
-  select(id, study, starts_with("ICE"), -ends_with(c("tert", "quant")), -contains("language")) %>%
+  # No language or inc+wb ICEs included
+  select(id, study, starts_with("ICE"), -ends_with(c("tert", "quant")), -contains(c("wb", "language"))) %>%
   pivot_longer(cols = c(-id, -study),
                names_to = c("ICE","geo"),
                names_sep = "_",
@@ -105,7 +106,7 @@ figure_2 = ggarrange(CHS,
                      nrow=1,
                      labels=c("CHS","REGARDS"), label.x=c(0.1,0.01), vjust=.8, font.label=list(family="Source Sans Pro"),
                      common.legend=T, legend="top")
-ggsave(here::here("figures/figure2.png"), plot=figure_2,
+ggsave(here::here("figures/ICE_box_all.png"), plot=figure_2,
        width=6.5, height=4, units="in", dpi=600) 
 
 # Other ICE distribution figures
