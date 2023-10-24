@@ -211,7 +211,7 @@ comorb_mods_wMissing = model_params %>%
 ```{r full}
 # For demographics model, control for study & demographics
 # NOTE, must end with +
-full_control_vars = "study+age_s+gender+race+educ+diabetes+smoke+mi+smoke+bmi_s+hdl_s+ldl_s+egfr_ckdepi_s+crp_s+"
+full_control_vars = "study+age_s+gender+race+educ+diabetes+smoke+mi+bmi_s+hdl_s+ldl_s+egfr_ckdepi_s+crp_s+"
 
 # Setup parallelization
 pack_needed = c("dplyr", "lme4", "lmerTest")
