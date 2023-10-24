@@ -1,4 +1,5 @@
 library(tidyverse)
+library(stringr)
 
 ##############
 # Processing #
@@ -34,7 +35,8 @@ full_analysis = rbind(
   # Get ICE tertile & quantile values
   mutate(across(starts_with("ICE"), 
                 .fns=list(tert=~factor(ntile(.x, 3),levels=c(3:1)), quant=~factor(ntile(.x, 5),levels=c(5:1))),
-                .names="{.col}_{.fn}"))
+                .names="{.col}_{.fn}")) %>%
+  rename_with(~str_replace_all(.x, "_raw_", "_"), starts_with("ICE"))
 
 # Get missingness
 print(full_analysis %>%
