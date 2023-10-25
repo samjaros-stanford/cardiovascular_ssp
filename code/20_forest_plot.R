@@ -3,10 +3,11 @@ require(stringr)
 require(tidyverse)
 require(showtext)
 
+geography = "zcta"
 colors = c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255")
-line_color = quant_colors[8]
-font = "Source Sans Pro"
-font_add_google(font)
+line_color = "black"
+font = "Arial"
+#font_add_google(font)
 line_width = 1
 display_ICE = tribble(~ICE,        ~ICE_display_expression,
                       "ICEincome",  "ICE[inc]",
@@ -22,7 +23,7 @@ display_quint = tribble(~quint, ~display_quint,
                         "2",    "2",
                         "1",    "1")
 # Change this list to change which ICE's are displayed
-ice_to_use = c("ICEincome","ICEraceeth","ICEincwnh","ICEedu","ICEhome")
+ice_to_use = c("ICEedu","ICEhome","ICEincome","ICEraceeth","ICEincwnh")
 
 quint_data = read_csv(here::here("data/all_mods_20230907.csv"), show_col_types=F) %>%
   filter(endsWith(ICE,"_quant"),
@@ -46,8 +47,8 @@ quint_data = read_csv(here::here("data/all_mods_20230907.csv"), show_col_types=F
          ICE = factor(ICE, 
                       levels=ice_to_use),
          ICE_display = factor(ICE, 
-                              labels=c("ICE[inc]","ICE[race]","ICE[inc+wb]","ICE[inc+wnh]","ICE[edu]","ICE[home]"), 
-                              levels=c("ICEincome","ICEraceeth","ICEincwb","ICEincwnh","ICEedu","ICEhome"))) %>%
+                              labels=c("ICE[edu]","ICE[home]","ICE[inc]","ICE[race]","ICE[inc+wb]","ICE[inc+wnh]"), 
+                              levels=c("ICEedu","ICEhome","ICEincome","ICEraceeth","ICEincwb","ICEincwnh"))) %>%
   drop_na(ICE, quant, est)
 
 ###########
@@ -58,7 +59,7 @@ quint_data = read_csv(here::here("data/all_mods_20230907.csv"), show_col_types=F
 showtext_auto()
 showtext_opts(dpi=600)
 
-hbp_quint_forest = ggplot(filter(quint_data, outcome=="hbp1", geo=="tract"), aes(y=quint, color=quint)) +
+hbp_quint_forest = ggplot(filter(quint_data, outcome=="hbp1", geo==geography), aes(y=quint, color=quint)) +
   labs(caption="1=most deprived 5=most privileged") +
   geom_vline(xintercept=1, color=line_color, linewidth=line_width) +
   geom_point(aes(x=est), size=line_width*3) +
@@ -76,7 +77,7 @@ hbp_quint_forest = ggplot(filter(quint_data, outcome=="hbp1", geo=="tract"), aes
         axis.title.x=element_text(family=font, size=12, hjust=1),
         axis.text=element_text(family=font, size=10))
 
-ggsave(filename=here::here("figures/hbp_tract_quint_forest.png"), hbp_quint_forest, 
+ggsave(filename=here::here(paste0("figures/hbp_",geography,"_quint_forest.png")), hbp_quint_forest, 
        height=6, width=3, units="in", dpi=600)
 
 showtext_auto(F)
@@ -89,7 +90,7 @@ showtext_auto(F)
 showtext_auto()
 showtext_opts(dpi=600)
 
-sbp_quint_forest = ggplot(filter(quint_data, outcome=="sys_bp", geo=="tract"), aes(y=quint, color=quint)) +
+sbp_quint_forest = ggplot(filter(quint_data, outcome=="sys_bp", geo==geography), aes(y=quint, color=quint)) +
   labs(caption="1=most deprived 5=most privileged") +
   geom_vline(xintercept=0, color=line_color, linewidth=line_width) +
   geom_point(aes(x=est), size=line_width*3) +
@@ -107,7 +108,7 @@ sbp_quint_forest = ggplot(filter(quint_data, outcome=="sys_bp", geo=="tract"), a
         axis.title.x=element_text(family=font, size=12, hjust=1),
         axis.text=element_text(family=font, size=10))
 
-ggsave(filename=here::here("figures/sbp_tract_quint_forest.png"), sbp_quint_forest, 
+ggsave(filename=here::here(paste0("figures/sbp_",geography,"_quint_forest.png")), sbp_quint_forest, 
        height=6, width=3, units="in", dpi=600)
 
 showtext_auto(F)
