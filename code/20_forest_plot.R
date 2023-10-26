@@ -1,7 +1,7 @@
-require(here)
-require(stringr)
-require(tidyverse)
-require(showtext)
+library(here)
+library(stringr)
+library(tidyverse)
+library(showtext)
 
 geography = "zcta"
 colors = c("#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255")
