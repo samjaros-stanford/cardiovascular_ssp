@@ -21,10 +21,14 @@
 #   will be placed in. This method can be repeated to simulate different
 #   assignment possibilities in a sensitivity analysis.
 
-library(stringr)
+# This method is repeated for assigning ZCTAs based on the 2010 HUD crosswalk
+#   file.
+
 library(tidyverse)
 # Set seed to make code reproducible
 set.seed(1989)
+
+## --- Correct tracts in CHS ---------------------------------------------------
 
 ##########
 # Import #
@@ -40,7 +44,7 @@ set.seed(1989)
 # saveRDS(crosswalk_tract, file="data/tract_crosswalk.rds")
 crosswalk_tract = readRDS("data/tract_crosswalk.rds")
 
-# Cleaned chs data
+# Cleaned CHS data from 01_clean_CHS.R
 chs_clean = readRDS("data/chs_cleaned.rds")
 
 ##############
@@ -78,19 +82,85 @@ transform_tract = function(tract10){
 }
 
 # Use function and translator list to pick a new tract for each CHS participant
-chs_analysis = chs_clean %>%
+chs_new_tract = chs_clean %>%
   rename(geo_tract11_yr2010 = geo_tract11) %>%
   rowwise() %>%
   mutate(geo_tract11 = transform_tract(geo_tract11_yr2010))
   
 ### Checks ###
 # No one should change county
-View(chs_analysis %>% filter(geo_county5!=str_sub(geo_tract11,1,5)))
+View(chs_new_tract %>% filter(geo_county5!=str_sub(geo_tract11,1,5)))
 # See changed tracts
-View(chs_analysis %>% filter(geo_tract11_yr2010!=geo_tract11))
+View(chs_new_tract %>% filter(geo_tract11_yr2010!=geo_tract11))
+
+## --- Correct ZIPs in both using HUD crosswalk -------------------------------
+
+# Remove all crosswalk variables from memory
+rm(list=ls()[startsWith(ls(),"crosswalk")])
+
+##########
+# Import #
+##########
+
+# HUD crosswalk file describing the percent of each tract in each ZIP
+#   Source: https://www.huduser.gov/portal/datasets/usps_crosswalk.html
+crosswalk_tract_to_zip = read_csv("raw_data/TRACT_ZIP_032010.csv")
+
+# REGARDS cleaned data from 02_clean_REGARDS.R
+regards_clean = readRDS("data/regards_cleaned.rds")
+
+##############
+# Processing #
+##############
+
+# Get list of 2000 tracts and their associated 2010 ZIPs and probabilities
+crosswalk_tract_to_zip_specs = crosswalk_tract_to_zip %>%
+  # For speed and to save memory, remove all ZIP rows that have no chance of
+  #   being assigned
+  filter(RES_RATIO>0) %>%
+  group_by(TRACT) %>%
+  summarize(zips=list(ZIP),
+            probs=list(RES_RATIO)) 
+# Create list of these values for easy lookup
+crosswalk_tract_to_zip_list = setNames(
+  mapply(list, "zips"=crosswalk_tract_to_zip_specs$zips, 
+         "probs"=crosswalk_tract_to_zip_specs$probs, SIMPLIFY=F), 
+  crosswalk_tract_to_zip_specs$TRACT)
+
+# Function taking a 2000 tract and returning a 2010 ZIP
+#   If the tract is in the crosswalk file, roll a weighted dice based on the
+#     population percentages
+transform_zip = function(tract00){
+  if(exists(tract00, where=crosswalk_tract_to_zip_list)){
+    this_tract = crosswalk_tract_to_zip_list[[tract00]]
+    if(length(this_tract$probs)==1){
+      return(this_tract$zips[1])
+    }
+    return(sample(this_tract$zips,size=1,prob=this_tract$probs))
+  }
+  return(NA_character_)
+}
+
+# Use function and translator list to pick a new ZIP for each participant
+chs_analysis = chs_new_tract %>%
+  rename(geo_zcta5_old = geo_zcta5) %>%
+  rowwise() %>%
+  mutate(geo_zcta5 = transform_zip(geo_tract11))
+
+regards_analysis = regards_clean %>%
+  rename(geo_zcta5_old = geo_zcta5) %>%
+  rowwise() %>%
+  mutate(geo_zcta5 = transform_zip(geo_tract11)) %>%
+  # If the new ZCTA is missing but the old isn't, impute new with old
+  ungroup() %>%
+  mutate(geo_zcta5 = if_else(is.na(geo_zcta5),geo_zcta5_old,geo_zcta5))
 
 ##########
 # Export #
 ##########
-saveRDS(chs_analysis %>% select(-ends_with("yr2010")),
+saveRDS(chs_analysis %>% select(-ends_with(c("old", "yr2010"))),
         file="data/chs_analysis.rds")
+saveRDS(regards_analysis %>% select(-ends_with("old")),
+        file="data/reaim_analysis.rds")
+
+
