@@ -83,5 +83,5 @@ print(regards_analysis %>%
 ##########
 # Export #
 ##########
-saveRDS(regards_analysis, "data/regards_analysis.rds")
+saveRDS(regards_analysis, "data/regards_cleaned.rds")
 
