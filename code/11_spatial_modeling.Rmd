@@ -11,7 +11,7 @@ library(lme4)
 library(lmerTest)
 library(tidyverse)
 
-# Cleaned & merged data import
+# --- Cleaned & merged data import ---------------------------------------------
 # Scaling continuous variables due to large eigenvalues
 full_analysis = readRDS(here::here("data/full_analysis.rds")) %>%
   mutate(age_s = scale(age),
@@ -21,14 +21,20 @@ full_analysis = readRDS(here::here("data/full_analysis.rds")) %>%
          egfr_ckdepi_s = scale(egfr_ckdepi),
          crp_s = scale(crp))
 
-# Parameters for modeling
+# --- Parameters for modeling --------------------------------------------------
 outcomes = c("hbp1", "sys_bp")
-ICEs = c("ICEincome", "ICEraceeth", "ICEhome", "ICEincwb", "ICEincwnh", "ICEedu")
-ICE_mods = c("", "_quant")
+ICEs = c("ICEincome", "ICEraceeth", "ICEhome", "ICEincwnh", "ICEedu")
+ICE_mods = c("", "_quint")
 geo_levels = c("county", "zcta", "tract")
 model_params = expand.grid("outcome"=outcomes, "ICE"=ICEs, "ICE_mod"=ICE_mods, "geo"=geo_levels,
                            stringsAsFactors=F)
 
+# --- Parameters for saving ----------------------------------------------------
+do_save_csv = TRUE
+csv_file_name = "results/20240123_model.csv"
+```
+
+```{r functions}
 # Function to run model and return data.frame with outputs
 do_mem = function(dataset, outcome, control_vars, ICE, ICE_mod, geo_level){
   # Create model formula
@@ -98,7 +104,11 @@ basic_mods_wMissing = model_params %>%
   full_join(basic_mods, by=c("outcome", "ICE", "geo")) %>%
   mutate(model="basic")
 
-#write.csv(basic_mods_wMissing, file=here::here("data/basic_mods.csv"), row.names=F)
+if(do_save_csv){
+  write.csv(basic_mods_wMissing, 
+            file=here::here("data", str_replace(csv_file_name, "model", "basic")), 
+            row.names=F)
+}
 ```
 
 # 2. Demographics Model
@@ -133,7 +143,11 @@ demo_mods_wMissing = model_params %>%
   full_join(demo_mods, by=c("outcome", "ICE", "geo")) %>%
   mutate(model="demog")
 
-#write.csv(demo_mods_wMissing, file=here::here("data/demo_mods.csv"), row.names=F)
+if(do_save_csv){
+  write.csv(demo_mods_wMissing, 
+            file=here::here("data", str_replace(csv_file_name, "model", "demo")), 
+            row.names=F)
+}
 ```
 
 # 3. Medical History
@@ -168,7 +182,11 @@ medHist_mods_wMissing = model_params %>%
   full_join(medHist_mods, by=c("outcome", "ICE", "geo")) %>%
   mutate(model="medHist")
 
-#write.csv(medHist_mods_wMissing, file=here::here("data/medHist_mods.csv"), row.names=F)
+if(do_save_csv){
+  write.csv(medHist_mods_wMissing, 
+            file=here::here("data", str_replace(csv_file_name, "model", "medHist")), 
+            row.names=F)
+}
 ```
 
 # 4. Comorbididties Model
@@ -203,7 +221,11 @@ comorb_mods_wMissing = model_params %>%
   full_join(comorb_mods, by=c("outcome", "ICE", "geo")) %>%
   mutate(model="comorb")
 
-#write.csv(comorb_mods_wMissing, file=here::here("data/comorb_mods.csv"), row.names=F)
+if(do_save_csv){
+  write.csv(comorb_mods_wMissing, 
+            file=here::here("data", str_replace(csv_file_name, "model", "comorb")), 
+            row.names=F)
+}
 ```
 
 # 5. Full Model
@@ -238,7 +260,11 @@ full_mods_wMissing = model_params %>%
   full_join(full_mods, by=c("outcome", "ICE", "geo")) %>%
   mutate(model="full")
 
-#write.csv(full_mods_wMissing, file=here::here("data/full_mods.csv"), row.names=F)
+if(do_save_csv){
+  write.csv(full_mods_wMissing, 
+            file=here::here("data", str_replace(csv_file_name, "model", "full")), 
+            row.names=F)
+}
 ```
 
 # Combine results
@@ -246,8 +272,9 @@ full_mods_wMissing = model_params %>%
 ```{r combine}
 rbind(basic_mods_wMissing, demo_mods_wMissing, medHist_mods_wMissing, 
       comorb_mods_wMissing, full_mods_wMissing) %>%
-  mutate(across(c("est","l_ci","u_ci"), ~round(if_else(grepl("hbp", outcome),exp(.x),.x),4)),
+  mutate(across(c("est","l_ci","u_ci"), 
+                ~round(if_else(grepl("hbp", outcome), exp(.x) , .x), 4)),
          p = round(p, 4)) %>%
-  write.csv(here::here("data/all_mods.csv"), row.names=F)
+  write.csv(here::here("data", str_replace(csv_file_name, "model", "all")), row.names=F)
 ```
 
