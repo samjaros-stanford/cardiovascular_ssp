@@ -19,7 +19,7 @@ full_analysis =
   mutate(across(starts_with("ICE"), 
                 .fns=~factor(ntile(.x, 5),levels=c(5:1)),
                 .names="{.col}_quint")) %>%
-  rename_with(~str_replace_all(.x, "_raw_", "_"), starts_with("ICE"))
+  rename_with(~str_replace_all(.x, "_raw", ""), starts_with("ICE"))
   
 # Factor variables as needed
 full_analysis$id = factor(full_analysis$id)
