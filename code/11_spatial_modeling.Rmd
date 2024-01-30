@@ -13,13 +13,13 @@ library(tidyverse)
 
 # --- Cleaned & merged data import ---------------------------------------------
 # Scaling continuous variables due to large eigenvalues
-full_analysis = readRDS(here::here("data/full_analysis.rds")) %>%
-  mutate(age_s = scale(age),
-         bmi_s = scale(bmi),
-         hdl_s = scale(hdl),
-         ldl_s = scale(ldl),
-         egfr_ckdepi_s = scale(egfr_ckdepi),
-         crp_s = scale(crp))
+full_analysis = as.data.frame(readRDS(here::here("data/full_analysis.rds")))
+full_analysis$age_s = as.vector(scale(full_analysis$age))
+full_analysis$bmi_s = as.vector(scale(full_analysis$bmi))
+full_analysis$hdl_s = as.vector(scale(full_analysis$hdl))
+full_analysis$ldl_s = as.vector(scale(full_analysis$ldl))
+full_analysis$egfr_ckdepi_s = as.vector(scale(full_analysis$egfr_ckdepi))
+full_analysis$crp_s = as.vector(scale(full_analysis$crp))
 
 # --- Parameters for modeling --------------------------------------------------
 outcomes = c("hbp1", "sys_bp")
@@ -88,7 +88,7 @@ registerDoSNOW(cluster)
 
 # Run models in parallel
 basic_mods = foreach(i=1:nrow(model_params), .combine="rbind", .packages=pack_needed,
-                     .options.snow=opts, .errorhandling="remove") %dopar% 
+                     .options.snow=opts, .errorhandling="stop") %dopar% 
   {
     do_mem(full_analysis, model_params[i,1], basic_control_vars, 
            model_params[i,2], model_params[i,3], model_params[i,4])
@@ -127,7 +127,7 @@ registerDoSNOW(cluster)
 
 # Run models in parallel
 demo_mods = foreach(i=1:nrow(model_params), .combine="rbind", .packages=pack_needed,
-                     .options.snow=opts, .errorhandling="remove") %dopar% 
+                     .options.snow=opts, .errorhandling="stop") %dopar% 
   {
     do_mem(full_analysis, model_params[i,1], demog_control_vars, 
            model_params[i,2], model_params[i,3], model_params[i,4])
@@ -166,7 +166,7 @@ registerDoSNOW(cluster)
 
 # Run models in parallel
 medHist_mods = foreach(i=1:nrow(model_params), .combine="rbind", .packages=pack_needed,
-                     .options.snow=opts, .errorhandling="remove") %dopar% 
+                     .options.snow=opts, .errorhandling="stop") %dopar% 
   {
     do_mem(full_analysis, model_params[i,1], medHist_control_vars, 
            model_params[i,2], model_params[i,3], model_params[i,4])
@@ -205,7 +205,7 @@ registerDoSNOW(cluster)
 
 # Run models in parallel
 comorb_mods = foreach(i=1:nrow(model_params), .combine="rbind", .packages=pack_needed,
-                     .options.snow=opts, .errorhandling="remove") %dopar% 
+                     .options.snow=opts, .errorhandling="stop") %dopar% 
   {
     do_mem(full_analysis, model_params[i,1], comorb_control_vars, 
            model_params[i,2], model_params[i,3], model_params[i,4])
@@ -244,7 +244,7 @@ registerDoSNOW(cluster)
 
 # Run models in parallel
 full_mods = foreach(i=1:nrow(model_params), .combine="rbind", .packages=pack_needed,
-                    .options.snow=opts, .errorhandling="remove") %dopar% 
+                    .options.snow=opts, .errorhandling="stop") %dopar% 
   {
     do_mem(full_analysis, model_params[i,1], full_control_vars, 
            model_params[i,2], model_params[i,3], model_params[i,4])
