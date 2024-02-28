@@ -8,7 +8,7 @@ full_analysis =
   # Stack harmonized CHS & REGARDS
   rbind(readRDS("data/chs_analysis.rds"), readRDS("data/regards_analysis.rds")) %>%
   ungroup() %>%
-  # Merge in proper census (2000 decennial for CHS & combined 2010-12 ACS for REGARDS)
+  # Merge in 2000 census
   left_join(readRDS("data/ICE/ice_county_dec.rds"), by=c("geo_county5"="GEOID")) %>%
   left_join(readRDS("data/ICE/ice_zcta_dec.rds"), by=c("geo_zcta5"="GEOID")) %>%
   left_join(readRDS("data/ICE/ice_tract_dec.rds"), by=c("geo_tract11"="GEOID")) %>%
