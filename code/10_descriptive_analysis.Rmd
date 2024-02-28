@@ -6,12 +6,8 @@ output: html_document
 ---
 
 ```{r setup}
-library(ggpubr)
 library(table1)
 library(tidyverse)
-library(showtext)
-font_add_google("Source Sans Pro")
-showtext_auto()
 
 # Cleaned & merged data import
 full_analysis = readRDS(here::here("data/full_analysis.rds"))
@@ -47,8 +43,25 @@ table1(~ hbp1 + sys_bp + dia_bp +
        data = full_analysis,
        render = my_rend)
 
+length(unique(full_analysis$geo_tract11))
+length(unique(full_analysis$geo_zcta5))
+length(unique(full_analysis$geo_county5))
+```
 
+## ICE Quintile Summary
 
+ICE values defining the quintiles for each geographic level and domain.
 
+```{r}
+full_analysis %>%
+  select(id, starts_with("ICE")) %>%
+  rename_with(~paste(.x, "_value", sep=""), c(everything(),-ends_with("_quint"),-id)) %>%
+  pivot_longer(cols=starts_with("ICE"),
+               names_sep = "_",
+               names_to = c("ICE_var","geo",".value")) %>%
+  group_by(ICE_var, geo, quint) %>%
+  summarize(ICE_min = round(min(value),2),
+            ICE_max = round(max(value),2)) %>%
+  filter(geo=="tract")
 ```
 
