@@ -30,6 +30,7 @@ full_analysis$educ = factor(full_analysis$educ, levels=c("College and above", "S
 full_analysis$diabetes = factor(full_analysis$diabetes, levels=c("Normal", "Diabetes"))
 full_analysis$stroke = factor(full_analysis$stroke, levels=c("No Stroke", "Stroke"))
 full_analysis$mi = factor(full_analysis$mi, levels=c("No MI", "MI"))
+full_analysis$htn_med = factor(full_analysis$htn_med, levels=c("No Meds", "Meds"))
 full_analysis$smoke = factor(full_analysis$smoke, levels=c("Never", "Former", "Current"))
 
 # Get missingness

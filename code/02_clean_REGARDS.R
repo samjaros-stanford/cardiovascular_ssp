@@ -1,5 +1,7 @@
 library(tidyverse)
 
+# TODO: Unify naming so that this produces the "cleaned" data, not analysis data
+
 ##########
 # Import #
 ##########
@@ -54,6 +56,10 @@ regards_analysis = raw_regards %>%
            MI_SR=="Y" ~ "MI",
            MI_SR=="N" ~ "No MI",
            T          ~ NA_character_),
+         htn_med = case_when(
+           Hyper_Meds_SR_now == "Y" ~ "Meds",
+           Hyper_Meds_SR_now == "N" ~ "No Meds",
+           T                        ~ NA_character_),
          ### Comorbidities
          # Smoker = Never/Former/Current
          smoke = case_when(
@@ -69,12 +75,14 @@ regards_analysis = raw_regards %>%
          crp=Crp,
          dia_bp=DBP,
          sys_bp=SBP) %>%
-  select(id, study, sys_bp, dia_bp, age, gender, race, educ, diabetes, stroke, mi,
-         smoke, bmi, hdl, ldl, egfr_ckdepi, crp, starts_with("geo_", ignore.case=F))
+  select(id, study, sys_bp, dia_bp, age, gender, race, educ, diabetes, stroke, 
+         mi, htn_med, smoke, bmi, hdl, ldl, egfr_ckdepi, crp, 
+         starts_with("geo_", ignore.case=F))
 
 # Get missingness
 print(regards_analysis %>%
-        summarize(across(everything(), ~sum(is.na(.x))/nrow(regards_analysis)*100)) %>%
+        summarize(across(everything(), 
+                         ~sum(is.na(.x))/nrow(regards_analysis)*100)) %>%
         pivot_longer(cols = everything(),
                      names_to = "col",
                      values_to = "pct_missing"),
