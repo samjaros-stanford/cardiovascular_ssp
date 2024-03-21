@@ -6,7 +6,12 @@ library(tidyverse)
 # Assemble CHS & REGARDS into final analysis dataset
 full_analysis = 
   # Stack harmonized CHS & REGARDS
-  rbind(readRDS("data/chs_analysis.rds"), readRDS("data/regards_analysis.rds")) %>%
+  bind_rows(readRDS("data/chs_cleaned.rds") %>%
+              select(-starts_with("geo_")) %>%
+              left_join(readRDS("data/chs_imputed_geos.rds")),
+            readRDS("data/regards_cleaned.rds") %>%
+              select(-starts_with("geo_")) %>%
+              left_join(readRDS("data/regards_imputed_geos.rds"))) %>%
   ungroup() %>%
   # Merge in 2000 census
   left_join(readRDS("data/ICE/ice_county_dec.rds"), by=c("geo_county5"="GEOID")) %>%
