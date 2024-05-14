@@ -288,3 +288,20 @@ rbind(basic_mods_wMissing, full_mods_wMissing) %>%
   write.csv(here::here("data", str_replace(csv_file_name, "model", "all")), row.names=F)
 ```
 
+# Get results in table format
+
+```{r make_table_format}
+ICE_factor_order = c("ICEedu_quint","ICEhome_quint","ICEincome_quint","ICEraceeth_quint","ICEincwnh_quint")
+
+read_csv(here::here("data","results","race_20240222_all.csv"),
+                      show_col_types = F) %>%
+  filter(outcome=="hbp1", endsWith(ICE, "_quint"), geo=="tract") %>%
+  mutate(quint = str_sub(ICE_coef_name,-1),
+         ICE = factor(ICE, levels=ICE_factor_order),
+         ICE_col = paste0(round(ICE_est,2)," (",round(ICE_l_ci,2),"-",round(ICE_u_ci,2),")"),
+         race_col = paste0(round(race_est,2)," (",round(race_l_ci,2),"-",round(race_u_ci,2),")"),
+         int_col = paste0(round(int_est,2)," (",round(int_l_ci,2),"-",round(int_u_ci,2),")")) %>%
+  arrange(model, ICE, quint) %>%
+  select(model, ICE, quint, ICE_col, race_col, int_col) %>%
+  write_csv(file=here::here("data","s_table4.csv"))
+```

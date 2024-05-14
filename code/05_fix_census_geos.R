@@ -45,7 +45,8 @@ set.seed(1989)
 crosswalk_tract = readRDS("data/tract_crosswalk.rds")
 
 # Cleaned CHS data from 01_clean_CHS.R
-chs_clean = readRDS("data/chs_cleaned.rds")
+chs_geos = readRDS("data/chs_cleaned.rds") %>%
+  select(id, starts_with("geo_"))
 
 ##############
 # Processing #
@@ -82,16 +83,17 @@ transform_tract = function(tract10){
 }
 
 # Use function and translator list to pick a new tract for each CHS participant
-chs_new_tract = chs_clean %>%
+chs_new_tract = chs_geos %>%
   rename(geo_tract11_yr2010 = geo_tract11) %>%
   rowwise() %>%
   mutate(geo_tract11 = transform_tract(geo_tract11_yr2010))
   
 ### Checks ###
 # No one should change county
-View(chs_new_tract %>% filter(geo_county5!=str_sub(geo_tract11,1,5)))
-# See changed tracts
-View(chs_new_tract %>% filter(geo_tract11_yr2010!=geo_tract11))
+nrow(filter(chs_new_tract, geo_county5!=str_sub(geo_tract11,1,5)))
+# Percent changed tracts
+nrow(filter(chs_new_tract, geo_tract11_yr2010!=geo_tract11)) / 
+  nrow(chs_new_tract)
 
 ## --- Correct ZIPs in both using HUD crosswalk -------------------------------
 
@@ -107,7 +109,8 @@ rm(list=ls()[startsWith(ls(),"crosswalk")])
 crosswalk_tract_to_zip = read_csv("raw_data/TRACT_ZIP_032010.csv")
 
 # REGARDS cleaned data from 02_clean_REGARDS.R
-regards_clean = readRDS("data/regards_cleaned.rds")
+regards_geos = readRDS("data/regards_cleaned.rds") %>%
+  select(id, starts_with("geo_"))
 
 ##############
 # Processing #
@@ -142,12 +145,7 @@ transform_zip = function(tract00){
 }
 
 # Use function and translator list to pick a new ZIP for each participant
-chs_analysis = chs_new_tract %>%
-  rename(geo_zcta5_old = geo_zcta5) %>%
-  rowwise() %>%
-  mutate(geo_zcta5 = transform_zip(geo_tract11))
-
-regards_analysis = regards_clean %>%
+chs_new_geos = chs_new_tract %>%
   rename(geo_zcta5_old = geo_zcta5) %>%
   rowwise() %>%
   mutate(geo_zcta5 = transform_zip(geo_tract11)) %>%
@@ -155,12 +153,26 @@ regards_analysis = regards_clean %>%
   ungroup() %>%
   mutate(geo_zcta5 = if_else(is.na(geo_zcta5),geo_zcta5_old,geo_zcta5))
 
+regards_new_geos = regards_geos %>%
+  rename(geo_zcta5_old = geo_zcta5) %>%
+  rowwise() %>%
+  mutate(geo_zcta5 = transform_zip(geo_tract11)) %>%
+  # If the new ZCTA is missing but the old isn't, impute new with old
+  ungroup() %>%
+  mutate(geo_zcta5 = if_else(is.na(geo_zcta5),geo_zcta5_old,geo_zcta5))
+
+### Checks ###
+# Percent CHS ZCTAs changed
+nrow(filter(chs_new_geos, geo_zcta5_old!=geo_zcta5)) / nrow(chs_new_geos)
+# Percent REGARDS ZCTAs changed
+nrow(filter(regards_new_geos, geo_zcta5_old!=geo_zcta5)) / nrow(regards_new_geos)
+
 ##########
 # Export #
 ##########
-saveRDS(chs_analysis %>% select(-ends_with(c("old", "yr2010"))),
-        file="data/chs_analysis.rds")
-saveRDS(regards_analysis %>% select(-ends_with("old")),
-        file="data/reaim_analysis.rds")
+saveRDS(chs_new_geos %>% select(-ends_with(c("old", "yr2010"))),
+        file="data/chs_imputed_geos.rds")
+saveRDS(regards_new_geos %>% select(-ends_with("old")),
+        file="data/regards_imputed_geos.rds")
 
 

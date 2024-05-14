@@ -25,11 +25,11 @@ my_rend = function(x, name, ...) {
   } else {
     r= c("", 
          sapply(stats.default(x), 
-                function(y) with(y, sprintf("%d (%0.1f%%)", FREQ, PCT))))
+                function(y) with(y, sprintf("%d (%0.0f%%)", FREQ, PCT))))
   }
   if(any(is.na(x))){
     r = c(r, with(stats.default(is.na(x))$Yes,
-                  c(Missing=sprintf("%s (%0.1f%%)", FREQ, PCT))))
+                  c(Missing=sprintf("%d (%0.0f%%)", FREQ, PCT))))
   }
   return(r)
 }
@@ -37,7 +37,7 @@ my_rend = function(x, name, ...) {
 # Biological & Demographic Variables
 table1(~ hbp1 + sys_bp + dia_bp + 
          age + gender + race + educ +
-         diabetes + stroke + mi +
+         diabetes + stroke + mi + htn_med +
          smoke + bmi + hdl + ldl + egfr_ckdepi + crp +
          is.na(geo_tract11) + is.na(geo_zcta5) + is.na(geo_county5) | study,
        data = full_analysis,
