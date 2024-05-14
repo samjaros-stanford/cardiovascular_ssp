@@ -1,7 +1,5 @@
 library(tidyverse)
 
-# TODO: Unify naming so that this produces the "cleaned" data, not analysis data
-
 ##########
 # Import #
 ##########
@@ -16,11 +14,15 @@ raw_regards = read.csv("raw_data/REGARDS_BASELINE_DATASET.csv")
 # Retrieve REGARDS data needed for analysis
 # This section only harmonizes data in preparation for merging with ICE and CHS
 #   data.
-regards_analysis = raw_regards %>%
+regards_clean = raw_regards %>%
   # Format geography data
-  mutate(geo_zcta5 = if_else(grepl("[0-9]{5}", GEO_Zip, perl=T), GEO_Zip, NA_character_),
-         geo_county5 = str_c(str_pad(GEO_StateFIPS,2,"left","0"), str_pad(GEO_CountyFIPS,3,"left","0")), 
-         geo_tract11 = str_c(geo_county5, str_pad(GEO_Tract,6,"left","0"))) %>%
+  mutate(geo_zcta5 = if_else(grepl("[0-9]{5}", GEO_Zip, perl=T), 
+                             GEO_Zip, 
+                             NA_character_),
+         geo_county5 = str_c(str_pad(GEO_StateFIPS,2,"left","0"), 
+                             str_pad(GEO_CountyFIPS,3,"left","0")), 
+         geo_tract11 = str_c(geo_county5, 
+                             str_pad(GEO_Tract,6,"left","0"))) %>%
   # Rename & select variables needed for analysis
   mutate(id=paste0("R", id),
          study="REGARDS",
@@ -80,16 +82,16 @@ regards_analysis = raw_regards %>%
          starts_with("geo_", ignore.case=F))
 
 # Get missingness
-print(regards_analysis %>%
+print(regards_clean %>%
         summarize(across(everything(), 
-                         ~sum(is.na(.x))/nrow(regards_analysis)*100)) %>%
+                         ~sum(is.na(.x))/nrow(regards_clean)*100)) %>%
         pivot_longer(cols = everything(),
                      names_to = "col",
                      values_to = "pct_missing"),
-      n=ncol(regards_analysis))
+      n=ncol(regards_clean))
 
 ##########
 # Export #
 ##########
-saveRDS(regards_analysis, "data/regards_cleaned.rds")
+saveRDS(regards_clean, "data/regards_cleaned.rds")
 

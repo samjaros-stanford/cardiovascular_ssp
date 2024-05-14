@@ -1,8 +1,6 @@
 library(haven)
 library(tidyverse)
 
-# TODO: Unify naming so that this produces the "cleaned" data, not analysis data
-
 ##########
 # Import #
 ##########
@@ -25,7 +23,7 @@ raw_chs_zcta = read_sas("raw_data/chs_zcta_baseline_2010.sas7bdat")
 # Retrieve CHS data needed for analysis
 # This section only harmonizes the data in preparation for merging with
 #   geography, ICEs, and REGARDS
-chs_analysis = raw_chs %>%
+chs_clean = raw_chs %>%
   # Merge in geographic data
   left_join(raw_chs_tract %>%
               select(idno, t10_cen_uid_u_2010) %>%
@@ -107,10 +105,11 @@ chs_analysis = raw_chs %>%
   mutate(scr   = if_else(perstat=="old cohort", cre2clb, cre5clb),
          kappa = if_else(gender=="female",      0.7,     0.9),
          alpha = if_else(gender=="female",      -0.329,  -0.411),
-         final = if_else(gender=="female",      1.018,   1)*
+         final = if_else(gender=="female",      1.018,   1) *
                  if_else(race=="black",         1.159,   1)) %>%
   rowwise() %>%
-  mutate(egfr_ckdepi = 141*min(scr/kappa,1)^alpha*max(scr/kappa,1)^-1.209*0.993^age*final) %>%
+  mutate(egfr_ckdepi = 141 * min(scr/kappa,1)^alpha * max(scr/kappa,1)^-1.209 * 
+           0.993^age * final) %>%
   ungroup() %>%
   # Keep only variables of interest
   select(id, study, sys_bp, dia_bp, age, gender, race, educ, diabetes, stroke, 
@@ -118,15 +117,15 @@ chs_analysis = raw_chs %>%
          starts_with("geo_"))
 
 # Get missingness
-print(chs_analysis %>% 
-        summarize(across(everything(), ~sum(is.na(.x))/nrow(chs_analysis)*100)) %>% 
+print(chs_clean %>% 
+        summarize(across(everything(), ~sum(is.na(.x))/nrow(chs_clean)*100)) %>% 
         pivot_longer(cols = everything(),
                      names_to = "col",
                      values_to = "pct_missing"),
-      n=ncol(chs_analysis))
+      n=ncol(chs_clean))
 
 ##########
 # Export #
 ##########
-saveRDS(chs_analysis, "data/chs_cleaned.rds")
+saveRDS(chs_clean, "data/chs_cleaned.rds")
 

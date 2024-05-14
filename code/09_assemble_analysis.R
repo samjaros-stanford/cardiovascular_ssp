@@ -20,7 +20,7 @@ full_analysis =
   # Construct primary outcomes - Hypertension 1 & 2
   mutate(hbp1 = sys_bp>=140 | dia_bp >=90,
          hbp2 = sys_bp>=130 | dia_bp >=80) %>%
-  # Get ICE tertile & quantile values
+  # Get ICE tertile & quintile values
   mutate(across(starts_with("ICE"), 
                 .fns=~factor(ntile(.x, 5),levels=c(5:1)),
                 .names="{.col}_quint")) %>%
@@ -31,7 +31,10 @@ full_analysis$id = factor(full_analysis$id)
 full_analysis$study = factor(full_analysis$study, levels=c("CHS", "REGARDS"))
 full_analysis$gender = factor(full_analysis$gender, levels=c("Male", "Female"))
 full_analysis$race = factor(full_analysis$race, levels=c("White/Other", "Black"))
-full_analysis$educ = factor(full_analysis$educ, levels=c("College and above", "Some college", "High school", "Less than HS"))
+full_analysis$educ = factor(full_analysis$educ, levels=c("College and above", 
+                                                         "Some college",
+                                                         "High school",
+                                                         "Less than HS"))
 full_analysis$diabetes = factor(full_analysis$diabetes, levels=c("Normal", "Diabetes"))
 full_analysis$stroke = factor(full_analysis$stroke, levels=c("No Stroke", "Stroke"))
 full_analysis$mi = factor(full_analysis$mi, levels=c("No MI", "MI"))
