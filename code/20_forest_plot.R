@@ -5,7 +5,8 @@ library(tidyverse)
 library(showtext)
 
 geography = "tract"
-colors = c("#56B4E9", "#009E73", "#D55E00", "#0072B2", "#E69F00")
+#colors = c("#56B4E9", "#009E73", "#D55E00", "#0072B2", "#E69F00")
+colors = c("#edf8fb", "#b3cde3", "#8c96c6", "#8856a7", "#810f7c")
 line_color = "black"
 font = "sans"
 line_width = 0.5

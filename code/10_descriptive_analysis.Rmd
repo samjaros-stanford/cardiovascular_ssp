@@ -42,9 +42,27 @@ table1(~ hbp1 + sys_bp + dia_bp +
          is.na(geo_tract11) + is.na(geo_zcta5) + is.na(geo_county5) | study,
        data = full_analysis,
        render = my_rend)
+```
 
+# Relevant counts
+
+```{r}
+# Number in unadjusted tract BP
+nrow(drop_na(full_analysis, hbp1, geo_tract11))
+# Number in unajdusted tract sys
+nrow(drop_na(full_analysis, sys_bp, geo_tract11))
+# Number in adjusted tract BP
+nrow(drop_na(full_analysis, hbp1, geo_tract11, age, gender, race, educ, 
+             diabetes, smoke, mi, bmi, hdl, ldl, egfr_ckdepi, crp))
+# Number in adjusted tract sys
+nrow(drop_na(full_analysis, sys_bp, geo_tract11, age, gender, race, educ, 
+             diabetes, smoke, mi, bmi, hdl, ldl, egfr_ckdepi, crp))
+
+# Number of unique tracts
 length(unique(full_analysis$geo_tract11))
+# Number of unique ZIP codes
 length(unique(full_analysis$geo_zcta5))
+# Number of unique counties
 length(unique(full_analysis$geo_county5))
 ```
 
