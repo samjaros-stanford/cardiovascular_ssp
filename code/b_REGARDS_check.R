@@ -37,7 +37,21 @@ out_geo_missingness = outcomes %>%
 table(out_geo_missingness$inOutcomes, out_geo_missingness$inZCTAs)
 table(out_geo_missingness$inOutcomes, out_geo_missingness$inTracts)
 
-# Tract missingness table
+# GEOGRAPHIC MISSINGNESS #######################################################
+
+# --- Tract --------------------------------------------------------------------
+# 2000
+out_geo_missingness %>%
+  left_join(tract_census00 %>%
+              select(GEOID) %>%
+              mutate(inCensus = "inCensus"),
+            by=c("c_FIPS11"="GEOID")) %>%
+  replace_na(list(inOutcomes="absentOutcome", inTracts="absentTracts", inCensus="absentCensus")) %>%
+  #filter(inTracts=="validTract" & inCensus=="absentCensus")
+  group_by(inOutcomes, inTracts, inCensus) %>%
+  summarize(count = n(),
+            percent = n()/nrow(.))
+# 2010
 out_geo_missingness %>%
   left_join(tract_census10 %>%
               select(GEOID) %>%
@@ -49,7 +63,20 @@ out_geo_missingness %>%
   summarize(count = n(),
             percent = n()/nrow(.))
 
-# ZCTA missingness table
+# --- ZCTA ---------------------------------------------------------------------
+# 2000
+out_geo_missingness %>%
+  left_join(zcta_census00 %>%
+              select(GEOID) %>%
+              mutate(inCensus = "inCensus"),
+            by=c("c_ZCTA"="GEOID")) %>%
+  replace_na(list(inOutcomes="absentOutcome", inZCTAs="noZCTA", inCensus="absentCensus")) %>%
+  #filter(inZCTAs!="noZCTA" & inCensus=="absentCensus")
+  group_by(inOutcomes, inZCTAs, inCensus) %>%
+  summarize(count = n(),
+            percent = n()/nrow(.))
+
+# 2010
 out_geo_missingness %>%
   left_join(zcta_census10 %>%
               select(GEOID) %>%
